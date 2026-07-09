@@ -214,3 +214,26 @@ server/       Express للتشغيل المحلي فقط
 ```
 
 أما رفع المشروع كاملاً على Railway فهو ممكن أيضاً، لكن عندها ستستخدم Express server وتحتاج إعداد تشغيل مختلف. إذا كان هدفك أسهل نشر لواجهة + API صغيرة، فالأفضل حالياً هو Vercel + MongoDB Atlas.
+
+## حل خطأ Vercel: Cannot find module 'tailwindcss'
+
+إذا ظهر هذا الخطأ أثناء `npm run build` على Vercel فهذا يعني أن Tailwind/PostCSS غير موجودين ضمن dependencies التي يثبتها Vercel. تم تثبيت الحزم المطلوبة داخل `dependencies` وليس `devDependencies` لضمان أن Vercel يثبتها دائماً:
+
+```json
+"tailwindcss": "3.4.17",
+"postcss": "8.4.49",
+"autoprefixer": "10.4.20"
+```
+
+تم تثبيت Tailwind على الإصدار `3.4.17` تحديداً لأن `postcss.config.js` الحالي يستخدم صيغة Tailwind v3 المستقرة:
+
+```js
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+```
+
+بعد رفع هذا التعديل إلى GitHub، أعد تشغيل Deploy من Vercel. إذا كان Vercel يستخدم cache قديم، اختر Redeploy مع تعطيل Build Cache.
