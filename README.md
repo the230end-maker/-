@@ -193,3 +193,24 @@ MONGODB_DB=novel_writer
 - إذا غيّرت Environment Variables بعد النشر، أعد عمل Redeploy.
 - لا تستخدم MongoDB محلياً على Vercel؛ استخدم Atlas أو مزود MongoDB سحابي.
 - Serverless Functions لها زمن تنفيذ محدود؛ لذلك عمليات DeepSeek الطويلة جداً قد تحتاج لاحقاً إلى Queue أو Backend منفصل إذا توسع المشروع.
+
+## حل مشكلة فشل Vite بسبب مكتبة `mongodb`
+
+مكتبة `mongodb` مخصصة لبيئة Node.js فقط، لذلك لا يجوز استيرادها داخل أي ملف في `src/` لأن هذه الملفات تدخل في حزمة المتصفح عند تشغيل `npm run build`.
+
+البنية الصحيحة في هذا المشروع هي:
+
+- ملفات الواجهة داخل `src/` تستخدم `fetch('/api/...')` فقط.
+- اتصال MongoDB الحقيقي موجود في:
+  - `api/[...path].ts` عند النشر على Vercel.
+  - `server/index.ts` عند التشغيل المحلي بخادم Express.
+
+لذلك لا تفصل الخادم عن الواجهة الآن إذا كان هدفك Vercel؛ الصيغة الحالية مناسبة كـ Monorepo:
+
+```text
+src/          واجهة React فقط
+api/          Vercel Serverless Functions وفيها MongoDB
+server/       Express للتشغيل المحلي فقط
+```
+
+أما رفع المشروع كاملاً على Railway فهو ممكن أيضاً، لكن عندها ستستخدم Express server وتحتاج إعداد تشغيل مختلف. إذا كان هدفك أسهل نشر لواجهة + API صغيرة، فالأفضل حالياً هو Vercel + MongoDB Atlas.

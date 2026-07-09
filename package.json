@@ -20,5 +20,6 @@
     "cors": "latest",
     "tsx": "latest"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "type": "module"
 }
