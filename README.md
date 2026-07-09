@@ -116,3 +116,80 @@ backups
 
 - تصدير نسخة احتياطية JSON تشمل كل المجموعات.
 - استعادة نسخة JSON بعد عرض ملخص وطلب تأكيد، مع مسح البيانات الحالية قبل الاستيراد.
+
+## النشر على Vercel
+
+هذا المشروع أصبح متوافقاً مع Vercel عبر مجلد `api/` الذي يحتوي Serverless Function واحدة تلتقط كل مسارات `/api/*`، لذلك لن تحتاج إلى تشغيل Express server منفصل على Vercel.
+
+### 1. جهّز MongoDB Atlas
+
+Vercel لا يوفر MongoDB محلياً، لذلك استخدم MongoDB Atlas:
+
+1. أنشئ Cluster على MongoDB Atlas.
+2. أنشئ Database User واحفظ اسم المستخدم وكلمة المرور.
+3. من Network Access أضف السماح لاتصالات Vercel. للتجربة السريعة يمكن استخدام `0.0.0.0/0`، وللإنتاج يفضّل تقييد الوصول بقدر الإمكان.
+4. انسخ Connection String بصيغة:
+
+```bash
+mongodb+srv://<username>:<password>@<cluster-url>/novel_writer?retryWrites=true&w=majority
+```
+
+### 2. ارفع المشروع إلى GitHub
+
+```bash
+git add .
+git commit -m "Prepare Vercel deployment"
+git push origin main
+```
+
+### 3. أنشئ مشروع Vercel
+
+1. افتح Vercel Dashboard.
+2. اضغط **Add New Project**.
+3. اختر مستودع GitHub الخاص بالمشروع.
+4. Vercel سيكتشف أنه Vite تلقائياً.
+5. تأكد من الإعدادات:
+   - Framework Preset: `Vite`
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+
+### 4. أضف Environment Variables في Vercel
+
+من صفحة المشروع في Vercel:
+
+`Settings` → `Environment Variables`
+
+أضف المتغيرات التالية:
+
+```bash
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster-url>/novel_writer?retryWrites=true&w=majority
+MONGODB_DB=novel_writer
+```
+
+المتغير الإلزامي هو `MONGODB_URI`. المتغير `MONGODB_DB` اختياري، وإذا لم تضعه سيستخدم التطبيق `novel_writer` تلقائياً.
+
+### 5. Deploy
+
+اضغط **Deploy**. بعد اكتمال البناء ستعمل:
+
+- الواجهة من رابط Vercel الرئيسي.
+- API من نفس الدومين تحت `/api`، مثل:
+  - `/api/state`
+  - `/api/backup/export`
+  - `/api/backup/import`
+
+### 6. بعد النشر
+
+1. افتح رابط Vercel.
+2. أنشئ الرواية من Dashboard.
+3. افتح صفحة الإعدادات.
+4. أضف توكنات DeepSeek إن أردت استخدام توكناتك الخاصة.
+5. اختر مزود POW: Railway أو Ngrok.
+6. جرّب تصدير نسخة احتياطية للتأكد من اتصال MongoDB.
+
+### ملاحظات مهمة على Vercel
+
+- لا تضع `MONGODB_URI` داخل الكود أو داخل GitHub، ضعه فقط في Vercel Environment Variables.
+- إذا غيّرت Environment Variables بعد النشر، أعد عمل Redeploy.
+- لا تستخدم MongoDB محلياً على Vercel؛ استخدم Atlas أو مزود MongoDB سحابي.
+- Serverless Functions لها زمن تنفيذ محدود؛ لذلك عمليات DeepSeek الطويلة جداً قد تحتاج لاحقاً إلى Queue أو Backend منفصل إذا توسع المشروع.
