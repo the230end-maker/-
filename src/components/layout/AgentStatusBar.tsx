@@ -1,0 +1,2 @@
+import { agents } from '../../lib/agents';
+export default function AgentStatusBar(){ return <footer className="h-10 border-t border-white/10 bg-black/90 flex items-center gap-5 px-4 text-xs text-white/60">{Object.entries(agents).map(([id,a],i)=><span key={id} className={i===3?'animate-pulse text-white':''}>● {a.icon} {a.name}: {i===3?'يكتب...':'جاهز'}</span>)}<span className="mr-auto">إحصائيات • حفظ تلقائي • تقدم الرواية</span></footer> }

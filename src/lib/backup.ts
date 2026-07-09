@@ -1,0 +1,4 @@
+import { api } from './mongodb';
+export async function exportBackup(){ const backup:any=await api('/backup/export'); const jsonStr=JSON.stringify(backup,null,2); const blob=new Blob([jsonStr],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`رواية-${backup.novel?.title||'بدون-اسم'}-نسخ-احتياطي-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url); }
+export async function importBackup(file:File){ const text=await file.text(); const backup=JSON.parse(text); if(!backup.novel||!backup.chapters) throw new Error('ملف النسخ الاحتياطي غير صالح'); return api('/backup/import',{method:'POST',body:JSON.stringify(backup)}); }
+export function summarizeBackup(backup:any){ return {title:backup.novel?.title||'بدون اسم',chapters:backup.chapters?.length||0,characters:backup.characters?.length||0,exportedAt:backup.exportedAt||'غير معروف'}; }

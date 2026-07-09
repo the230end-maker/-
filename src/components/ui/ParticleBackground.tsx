@@ -1,0 +1,2 @@
+import { motion } from 'framer-motion';
+export default function ParticleBackground(){ return <div className="fixed inset-0 pointer-events-none overflow-hidden">{Array.from({length:70}).map((_,i)=><motion.span key={i} className="absolute h-1 w-1 rounded-full bg-white/30" style={{right:`${Math.random()*100}%`,top:`${Math.random()*100}%`}} animate={{y:[0,-30,0],opacity:[.05,.45,.05]}} transition={{duration:8+Math.random()*10,repeat:Infinity,delay:Math.random()*6}}/> )}</div> }

@@ -1,0 +1,2 @@
+import Sidebar from '../components/layout/Sidebar'; import RightInspector from '../components/layout/RightInspector'; import ChapterEditor from '../components/editor/ChapterEditor'; import { useNovelStore } from '../store/novelStore';
+export default function WritingStudio(){ const {state,zen}=useNovelStore(); return <div className="h-[calc(100vh-104px)] flex">{!zen&&<Sidebar/>}<main className="flex-1 p-4 overflow-hidden"><ChapterEditor/></main>{!zen&&<RightInspector state={state}/>}</div> }
