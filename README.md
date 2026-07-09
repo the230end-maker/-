@@ -237,3 +237,20 @@ export default {
 ```
 
 بعد رفع هذا التعديل إلى GitHub، أعد تشغيل Deploy من Vercel. إذا كان Vercel يستخدم cache قديم، اختر Redeploy مع تعطيل Build Cache.
+
+## حل خطأ Vercel: Cannot read properties of undefined (reading 'readFile')
+
+إذا نجح `vite build` ثم فشل Vercel بعدها برسالة مثل:
+
+```text
+Using TypeScript 7.0.2 (local user-provided)
+Error: Cannot read properties of undefined (reading 'readFile')
+```
+
+فالسبب أن `typescript` كان مضبوطاً على `latest`، وVercel قام بتثبيت نسخة حديثة جداً/غير مستقرة بالنسبة لأدوات البناء. تم تثبيت TypeScript على إصدار مستقر:
+
+```json
+"typescript": "5.6.3"
+```
+
+بعد هذا التعديل أعد النشر من Vercel، ويفضل اختيار Redeploy بدون Build Cache حتى لا يستخدم نسخة TypeScript القديمة.
