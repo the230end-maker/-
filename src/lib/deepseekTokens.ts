@@ -1,0 +1,12 @@
+import { api } from './mongodb'; import { createChatSession, DEFAULT_TOKEN_VALUE, SECONDARY_TOKEN_VALUE, type ModelType, type PowProvider } from './deepseekClient'; import type { AgentId } from './schema';
+export interface DeepSeekToken{ id:string; name:string; token:string; isBuiltIn:boolean; isValid:boolean; }
+export interface TokenModelAssignment{ tokenId:string; modelType:'default'|'expert'; agentId?:AgentId; }
+export const builtInTokens:DeepSeekToken[]=[{id:'builtin_default',name:'الحساب الافتراضي',token:DEFAULT_TOKEN_VALUE,isBuiltIn:true,isValid:true},{id:'builtin_secondary',name:'الحساب الثانوي',token:SECONDARY_TOKEN_VALUE,isBuiltIn:true,isValid:true}];
+export const defaultAgentAssignments:Record<AgentId,ModelType>={architect:'default',character:'default',world:'default',writer:'expert',checker:'default',editor:'expert'};
+export async function getSettings(){ const s:any=(await api('/state')).settings||{}; return {tokens:s.tokens?.length?s.tokens:builtInTokens,activeTokenId:s.activeTokenId||'builtin_default',agentModelAssignments:{...defaultAgentAssignments,...s.agentModelAssignments},powProvider:(s.powProvider||'railway') as PowProvider}; }
+export async function saveSettings(settings:any){ return api('/settings',{method:'POST',body:JSON.stringify({id:'settings',...settings})}); }
+export async function addToken(token:string,name?:string){ const s=await getSettings(); if(s.tokens.some((t:DeepSeekToken)=>t.token===token)) throw new Error('هذا التوكن مضاف بالفعل'); const newToken={id:crypto.randomUUID(),name:name||`توكن ${s.tokens.length+1}`,token,isBuiltIn:false,isValid:true}; s.tokens=[...s.tokens,newToken]; await saveSettings(s); return newToken; }
+export async function deleteToken(id:string){ const s=await getSettings(); s.tokens=s.tokens.filter((t:DeepSeekToken)=>t.id!==id||t.isBuiltIn); if(s.activeTokenId===id) s.activeTokenId='builtin_default'; await saveSettings(s); }
+export async function testTokenValidity(tokenObj:DeepSeekToken){ try{ await createChatSession(tokenObj.token); return true; }catch{return false;} }
+export async function getTokenById(id:string){ const s=await getSettings(); return s.tokens.find((t:DeepSeekToken)=>t.id===id)||s.tokens[0]; }
+export async function getAgentModelAssignment(agentId:AgentId):Promise<TokenModelAssignment>{ const s=await getSettings(); return {tokenId:s.activeTokenId,modelType:s.agentModelAssignments[agentId]||'default',agentId}; }
